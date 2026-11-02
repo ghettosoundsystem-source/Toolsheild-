@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolShield - Secure Trade Asset Registry</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 15px;
+        }
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        header h1 {
+            color: #ff9800;
+            margin-bottom: 5px;
+        }
+        header p {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        .card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            color: #ff9800;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ff9800;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 0;
+            color: #ccc;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>ToolShield</h1>
+            <p>Secure Trade Asset Registry & Insurance Dossier</p>
+        </header>
+
+        <section class="card">
+            <h2>Log Your Kit</h2>
+            <div class="form-group">
+                <input type="text" id="toolName" placeholder="Tool Name / Brand (e.g. Makita Combi Drill)">
+                <input type="text" id="toolSerial" placeholder="Serial Number">
+                <button onclick="addTool()">Add to Vault</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Protected Vault Inventory</h2>
+            <ul id="toolList">
+                <li>No tools logged yet. Add your kit above.</li>
+            </ul>
+        </section>
+
+        <section class="card payment-card">
+            <h2>Get Paid Protection</h2>
+            <p>Export an insurance-ready dossier or unlock unlimited cloud backups for the year.</p>
+            
+            <a href="https://buy.stripe.com/bJe4gz7YhcJ6fD17Sw8EM00" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; font-weight: bold; margin-bottom: 10px; background: #2196F3; color: white;">
+                📄 Get Insurance Dossier (£7.99)
+            </a>
+            
+            <a href="https://buy.stripe.com/14A6oH5Q9gZmeyX1u88EM01" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; font-weight: bold; background: #4CAF50; color: white;">
+                ⭐ Get Annual Vault Pass (£12.99/yr)
+            </a>
+        </section>
+    </div>
+
+    <script>
+        function addTool() {
+            const nameInput = document.getElementById('toolName');
+            const serialInput = document.getElementById('toolSerial');
+            const toolList = document.getElementById('toolList');
+
+            if (nameInput.value.trim() === '') {
+                alert('Please enter a tool name or brand.');
+                return;
+            }
+
+            if (toolList.innerHTML.includes('No tools logged yet')) {
+                toolList.innerHTML = '';
+            }
+
+            const li = document.createElement('li');
+            li.textContent = `${nameInput.value} ${serialInput.value ? '(Serial: ' + serialInput.value + ')' : ''}`;
+            toolList.appendChild(li);
+
+            nameInput.value = '';
+            serialInput.value = '';
+        }
+    </script>
+</body>
+</html>
