@@ -174,8 +174,9 @@
             color: var(--text-muted);
             text-decoration: underline;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
             margin-top: 20px;
+            padding: 10px;
         }
     </style>
 </head>
@@ -203,7 +204,7 @@
             </a>
 
             <!-- Developer testing bypass button for quick verification -->
-            <button class="dev-bypass" onclick="simulateSuccessfulPayment()">[ Simulate Payment / Test App Access ]</button>
+            <button type="button" class="dev-bypass" id="bypass-btn">[ Simulate Payment / Test App Access ]</button>
         </div>
 
         <!-- ================= MAIN APP DASHBOARD ================= -->
@@ -216,7 +217,7 @@
             <!-- Add Tool Form -->
             <div class="card">
                 <h3 style="margin-top: 0; color: var(--text-main);">Log New Equipment</h3>
-                <form id="tool-form" onsubmit="addTool(event)">
+                <form id="tool-form">
                     <div class="form-group">
                         <label for="tool-name">Tool Name / Brand / Model</label>
                         <input type="text" id="tool-name" placeholder="e.g., Makita DHP485 Combi Drill" required>
@@ -229,7 +230,7 @@
                         <label for="tool-value">Estimated Value (£)</label>
                         <input type="number" id="tool-value" placeholder="e.g., 250" required>
                     </div>
-                    <button type="submit" class="btn-primary" style="background: var(--success); color: white;">Save to Secure Vault</button>
+                    <button type="submit" class="btn-primary" style="background: var(--success); color: white; margin-top: 15px;">Save to Secure Vault</button>
                 </form>
             </div>
 
@@ -240,13 +241,13 @@
                     <p style="color: var(--text-muted); font-style: italic;">No tools logged yet. Add your kit above.</p>
                 </div>
 
-                <button onclick="generateInsurancePDF()" id="pdf-btn" class="btn-primary btn-pdf" style="display: none;">
+                <button type="button" id="pdf-btn" class="btn-primary btn-pdf" style="display: none;">
                     📄 Download Police & Insurance PDF Report
                 </button>
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <button onclick="lockApp()" style="background: transparent; border: 1px solid #444; color: var(--text-muted); padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                <button type="button" id="lock-btn" style="background: transparent; border: 1px solid #444; color: var(--text-muted); padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                     Lock Vault / Reset Session
                 </button>
             </div>
@@ -255,141 +256,151 @@
     </div>
 
     <script>
-        let tools = JSON.parse(localStorage.getItem('toolshield_inventory')) || [];
+        document.addEventListener('DOMContentLoaded', function() {
+            let tools = JSON.parse(localStorage.getItem('toolshield_inventory')) || [];
 
-        // Check unlock status on load
-        window.onload = function() {
+            const paywallScreen = document.getElementById('paywall-screen');
+            const appContent = document.getElementById('app-content');
+            const bypassBtn = document.getElementById('bypass-btn');
+            const lockBtn = document.getElementById('lock-btn');
+            const toolForm = document.getElementById('tool-form');
+            const pdfBtn = document.getElementById('pdf-btn');
+
+            // Check unlock status on load
             if(localStorage.getItem('toolshield_unlocked') === 'true') {
                 showAppDashboard();
             }
-        }
 
-        function simulateSuccessfulPayment() {
-            localStorage.setItem('toolshield_unlocked', 'true');
-            showAppDashboard();
-        }
+            bypassBtn.addEventListener('click', function() {
+                localStorage.setItem('toolshield_unlocked', 'true');
+                showAppDashboard();
+            });
 
-        function showAppDashboard() {
-            document.getElementById('paywall-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            renderTools();
-        }
+            lockBtn.addEventListener('click', function() {
+                localStorage.removeItem('toolshield_unlocked');
+                paywallScreen.style.display = 'block';
+                appContent.style.display = 'none';
+            });
 
-        function lockApp() {
-            localStorage.removeItem('toolshield_unlocked');
-            document.getElementById('paywall-screen').style.display = 'block';
-            document.getElementById('app-content').style.display = 'none';
-        }
+            toolForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('tool-name').value;
+                const serial = document.getElementById('tool-serial').value;
+                const value = document.getElementById('tool-value').value;
 
-        function addTool(e) {
-            e.preventDefault();
-            const name = document.getElementById('tool-name').value;
-            const serial = document.getElementById('tool-serial').value;
-            const value = document.getElementById('tool-value').value;
+                tools.push({ id: Date.now(), name, serial, value });
+                localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
 
-            tools.push({ id: Date.now(), name, serial, value });
-            localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
+                toolForm.reset();
+                renderTools();
+            });
 
-            document.getElementById('tool-form').reset();
-            renderTools();
-        }
+            pdfBtn.addEventListener('click', function() {
+                generateInsurancePDF();
+            });
 
-        function deleteTool(id) {
-            tools = tools.filter(t => t.id !== id);
-            localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
-            renderTools();
-        }
-
-        function renderTools() {
-            const listEl = document.getElementById('tool-list');
-            const pdfBtn = document.getElementById('pdf-btn');
-
-            if (tools.length === 0) {
-                listEl.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">No tools logged yet. Add your kit above.</p>';
-                pdfBtn.style.display = 'none';
-                return;
+            function showAppDashboard() {
+                paywallScreen.style.display = 'none';
+                appContent.style.display = 'block';
+                renderTools();
             }
 
-            listEl.innerHTML = '';
-            tools.forEach(tool => {
-                listEl.innerHTML += `
-                    <div class="tool-item">
-                        <div class="tool-info">
-                            <b>${tool.name}</b><br>
-                            <span style="font-size: 13px; color: var(--text-muted);">S/N: ${tool.serial} | Value: £${tool.value}</span>
-                        </div>
-                        <button class="btn-danger" onclick="deleteTool(${tool.id})">Remove</button>
-                    </div>
-                `;
-            });
+            window.deleteTool = function(id) {
+                tools = tools.filter(t => t.id !== id);
+                localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
+                renderTools();
+            }
 
-            pdfBtn.style.display = 'block';
-        }
+            function renderTools() {
+                const listEl = document.getElementById('tool-list');
 
-        function generateInsurancePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Header Banner
-            doc.setFillColor(18, 18, 18);
-            doc.rect(0, 0, 210, 40, "F");
-
-            doc.setTextColor(255, 152, 0);
-            doc.setFontSize(22);
-            doc.text("TOOLSHIELD", 14, 22);
-
-            doc.setTextColor(200, 200, 200);
-            doc.setFontSize(10);
-            doc.text("OFFICIAL TRADE ASSET & INSURANCE DOSSIER", 14, 30);
-
-            // Metadata
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(11);
-            doc.text(`Generated On: ${new Date().toLocaleDateString('en-GB')}`, 14, 52);
-            doc.text(`Status: Verified Secure Vault Inventory`, 14, 58);
-
-            // Table Headers
-            let y = 70;
-            doc.setFillColor(240, 240, 240);
-            doc.rect(14, y, 182, 10, "F");
-            doc.setFont("helvetica", "bold");
-            doc.text("Tool Description / Model", 18, y + 7);
-            doc.text("Serial Number", 110, y + 7);
-            doc.text("Value (£)", 170, y + 7);
-
-            // Tool Rows
-            y += 10;
-            doc.setFont("helvetica", "normal");
-            let totalValue = 0;
-
-            tools.forEach((tool, index) => {
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
+                if (tools.length === 0) {
+                    listEl.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">No tools logged yet. Add your kit above.</p>';
+                    pdfBtn.style.display = 'none';
+                    return;
                 }
-                totalValue += parseFloat(tool.value || 0);
-                
-                doc.text(tool.name, 18, y + 8);
-                doc.text(tool.serial, 110, y + 8);
-                doc.text(`£${tool.value}`, 170, y + 8);
 
-                doc.setDrawColor(220, 220, 220);
-                doc.line(14, y + 12, 196, y + 12);
-                y += 14;
-            });
+                listEl.innerHTML = '';
+                tools.forEach(tool => {
+                    listEl.innerHTML += `
+                        <div class="tool-item">
+                            <div class="tool-info">
+                                <b>${tool.name}</b><br>
+                                <span style="font-size: 13px; color: var(--text-muted);">S/N: ${tool.serial} | Value: £${tool.value}</span>
+                            </div>
+                            <button type="button" class="btn-danger" onclick="deleteTool(${tool.id})">Remove</button>
+                        </div>
+                    `;
+                });
 
-            // Total Summary
-            y += 5;
-            doc.setFont("helvetica", "bold");
-            doc.text(`Total Insured Value: £${totalValue.toFixed(2)}`, 140, y + 8);
+                pdfBtn.style.display = 'block';
+            }
 
-            // Footer
-            doc.setFontSize(9);
-            doc.setTextColor(150, 150, 150);
-            doc.text("ToolShield Digital Asset Protection - Certified Inventory Record", 14, 285);
+            function generateInsurancePDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-            doc.save("ToolShield-Insurance-Dossier.pdf");
-        }
+                // Header Banner
+                doc.setFillColor(18, 18, 18);
+                doc.rect(0, 0, 210, 40, "F");
+
+                doc.setTextColor(255, 152, 0);
+                doc.setFontSize(22);
+                doc.text("TOOLSHIELD", 14, 22);
+
+                doc.setTextColor(200, 200, 200);
+                doc.setFontSize(10);
+                doc.text("OFFICIAL TRADE ASSET & INSURANCE DOSSIER", 14, 30);
+
+                // Metadata
+                doc.setTextColor(50, 50, 50);
+                doc.setFontSize(11);
+                doc.text(`Generated On: ${new Date().toLocaleDateString('en-GB')}`, 14, 52);
+                doc.text(`Status: Verified Secure Vault Inventory`, 14, 58);
+
+                // Table Headers
+                let y = 70;
+                doc.setFillColor(240, 240, 240);
+                doc.rect(14, y, 182, 10, "F");
+                doc.setFont("helvetica", "bold");
+                doc.text("Tool Description / Model", 18, y + 7);
+                doc.text("Serial Number", 110, y + 7);
+                doc.text("Value (£)", 170, y + 7);
+
+                // Tool Rows
+                y += 10;
+                doc.setFont("helvetica", "normal");
+                let totalValue = 0;
+
+                tools.forEach((tool) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    totalValue += parseFloat(tool.value || 0);
+                    
+                    doc.text(tool.name, 18, y + 8);
+                    doc.text(tool.serial, 110, y + 8);
+                    doc.text(`£${tool.value}`, 170, y + 8);
+
+                    doc.setDrawColor(220, 220, 220);
+                    doc.line(14, y + 12, 196, y + 12);
+                    y += 14;
+                });
+
+                // Total Summary
+                y += 5;
+                doc.setFont("helvetica", "bold");
+                doc.text(`Total Insured Value: £${totalValue.toFixed(2)}`, 140, y + 8);
+
+                // Footer
+                doc.setFontSize(9);
+                doc.setTextColor(150, 150, 150);
+                doc.text("ToolShield Digital Asset Protection - Certified Inventory Record", 14, 285);
+
+                doc.save("ToolShield-Insurance-Dossier.pdf");
+            }
+        });
     </script>
 </body>
 </html>
