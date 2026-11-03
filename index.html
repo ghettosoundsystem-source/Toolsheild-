@@ -134,7 +134,6 @@ function addTool() {
     // Add to list and save to browser storage
     toolList.push(newTool);
     localStorage.setItem('toolshield_vault', JSON.stringify(toolList));
-
     // Reset inputs and refresh display
     document.getElementById('toolname').value = '';
     document.getElementById('toolserial').value = '';
