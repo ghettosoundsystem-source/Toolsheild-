@@ -178,6 +178,16 @@
             margin-top: 20px;
             padding: 10px;
         }
+
+        .disclaimer-text {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.4;
+            margin-top: 25px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -205,6 +215,10 @@
 
             <!-- Developer testing bypass button for quick verification -->
             <button type="button" class="dev-bypass" id="bypass-btn">[ Simulate Payment / Test App Access ]</button>
+
+            <div class="disclaimer-text">
+                <strong>Disclaimer:</strong> ToolShield is an independent digital asset registry tool designed to assist tradespeople in cataloging equipment for personal record-keeping, police reporting, and insurance claims. ToolShield does not guarantee insurance payouts or police recovery outcomes, which are subject to individual policy terms, insurer verification, and law enforcement investigations.
+            </div>
         </div>
 
         <!-- ================= MAIN APP DASHBOARD ================= -->
@@ -373,7 +387,7 @@
                 let totalValue = 0;
 
                 tools.forEach((tool) => {
-                    if (y > 270) {
+                    if (y > 250) {
                         doc.addPage();
                         y = 20;
                     }
@@ -393,7 +407,17 @@
                 doc.setFont("helvetica", "bold");
                 doc.text(`Total Insured Value: £${totalValue.toFixed(2)}`, 140, y + 8);
 
-                // Footer
+                // Footer Disclaimer in PDF
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(8);
+                doc.setTextColor(130, 130, 130);
+                doc.text(
+                    "Disclaimer: ToolShield is an independent registry tool. Payouts and recovery outcomes depend on individual policy terms.", 
+                    14, 275, 
+                    { maxWidth: 180 }
+                );
+
+                doc.setFont("helvetica", "normal");
                 doc.setFontSize(9);
                 doc.setTextColor(150, 150, 150);
                 doc.text("ToolShield Digital Asset Protection - Certified Inventory Record", 14, 285);
