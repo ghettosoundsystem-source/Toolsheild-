@@ -109,27 +109,74 @@
     </div>
 
     <script>
-        function addTool() {
-            const nameInput = document.getElementById('toolName');
-            const serialInput = document.getElementById('toolSerial');
-            const toolList = document.getElementById('toolList');
+// Load existing tools from localStorage or start with an empty array
+let toolList = JSON.parse(localStorage.getItem('toolshield_vault')) || [];
 
-            if (nameInput.value.trim() === '') {
-                alert('Please enter a tool name or brand.');
-                return;
-            }
+// Render existing tools on page load
+renderTools();
 
-            if (toolList.innerHTML.includes('No tools logged yet')) {
-                toolList.innerHTML = '';
-            }
+function addTool() {
+    const nameInput = document.getElementById('toolname').value.trim();
+    const serialInput = document.getElementById('toolserial').value.trim();
 
-            const li = document.createElement('li');
-            li.textContent = `${nameInput.value} ${serialInput.value ? '(Serial: ' + serialInput.value + ')' : ''}`;
-            toolList.appendChild(li);
+    if (nameInput === "") {
+        alert("Please enter a tool name.");
+        return;
+    }
 
-            nameInput.value = '';
-            serialInput.value = '';
-        }
+    // Create new tool object
+    const newTool = {
+        id: Date.now(),
+        name: nameInput,
+        serial: serialInput || 'No Serial Provided'
+    };
+
+    // Add to list and save to browser storage
+    toolList.push(newTool);
+    localStorage.setItem('toolshield_vault', JSON.stringify(toolList));
+
+    // Reset inputs and refresh display
+    document.getElementById('toolname').value = '';
+    document.getElementById('toolserial').value = '';
+    renderTools();
+}
+
+function clearVault() {
+    if (confirm("Are you sure you want to clear all logged tools from your vault?")) {
+        toolList = [];
+        localStorage.removeItem('toolshield_vault');
+        renderTools();
+    }
+}
+
+function renderTools() {
+    const listContainer = document.getElementById('toollist');
+    if (!listContainer) return;
+
+    if (toolList.length === 0) {
+        listContainer.innerHTML = `
+            <p style="color: #aaa; padding: 10px 0;">No tools logged yet. Add your kit above.</p>
+        `;
+        return;
+    }
+
+    // Generate the list HTML plus the Clear Vault button at the bottom
+    let html = toolList.map(tool => `
+        <div style="background: #1e1e1e; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff8800; color: #fff;">
+            <strong>${tool.name}</strong><br>
+            <small style="color: #aaa;">Serial: ${tool.serial}</small>
+        </div>
+    `).join('');
+
+    html += `
+        <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Clear Vault Inventory
+        </button>
+    `;
+
+    listContainer.innerHTML = html;
+}
     </script>
+    
 </body>
 </html>
