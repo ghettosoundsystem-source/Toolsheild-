@@ -106,65 +106,67 @@
         </div>
     </div>
 
-    <script>
-        let toolList = JSON.parse(localStorage.getItem('toolshield_vault')) || [];
+<script>
+const KEY = 'toolshield_vault';
+let toolList = JSON.parse(localStorage.getItem(KEY)) || [];
+renderTools();
+
+function addTool() {
+    const nameInput = document.getElementById('toolname').value.trim();
+    const serialInput = document.getElementById('toolserial').value.trim();
+
+    if (nameInput === "") {
+        alert("Please enter a tool name.");
+        return;
+    }
+
+    const newTool = {
+        id: Date.now(),
+        name: nameInput,
+        serial: serialInput || 'No Serial Provided'
+    };
+
+    toolList.push(newTool);
+    localStorage.setItem(KEY, JSON.stringify(toolList));
+
+    document.getElementById('toolname').value = '';
+    document.getElementById('toolserial').value = '';
+    renderTools();
+}
+
+function clearVault() {
+    if (confirm("Clear all logged tools?")) {
+        toolList = [];
+        localStorage.removeItem(KEY);
         renderTools();
+    }
+}
 
-        function addTool() {
-            const nameInput = document.getElementById('toolname').value.trim();
-            const serialInput = document.getElementById('toolserial').value.trim();
+function renderTools() {
+    const container = document.getElementById('toollist');
+    if (!container) return;
 
-            if (nameInput === "") {
-                alert("Please enter a tool name.");
-                return;
-            }
+    if (toolList.length === 0) {
+        container.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
+        return;
+    }
 
-            const newTool = {
-                id: Date.now(),
-                name: nameInput,
-                serial: serialInput || 'No Serial Provided'
-            };
+    let html = toolList.map(t => `
+        <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
+            <strong>${t.name}</strong><br>
+            <small style="color: #aaa;">Serial: ${t.serial}</small>
+        </div>
+    `).join('');
 
-            toolList.push(newTool);
-            localStorage.setItem('toolshield_vault', JSON.stringify(toolList));
+    html += `
+        <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Clear Vault Inventory
+        </button>
+    `;
 
-            document.getElementById('toolname').value = '';
-            document.getElementById('toolserial').value = '';
-            renderTools();
-        }
+    container.innerHTML = html;
+}
+</script>
 
-        function clearVault() {
-            if (confirm("Are you sure you want to clear all logged tools from your vault?")) {
-                toolList = [];
-                localStorage.removeItem('toolshield_vault');
-                renderTools();
-            }
-        }
-
-        function renderTools() {
-            const listContainer = document.getElementById('toollist');
-            if (!listContainer) return;
-
-            if (toolList.length === 0) {
-                listContainer.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
-                return;
-            }
-
-            let html = toolList.map(tool => `
-                <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
-                    <strong>${tool.name}</strong><br>
-                    <small style="color: #aaa;">Serial: ${tool.serial}</small>
-                </div>
-            `).join('');
-
-            html += `
-                <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    Clear Vault Inventory
-                </button>
-            `;
-
-            listContainer.innerHTML = html;
-        }
-    </script>
 </body>
 </html>
