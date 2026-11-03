@@ -174,16 +174,24 @@
             color: var(--text-muted);
             text-decoration: underline;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
+            margin-top: 15px;
+            padding: 5px;
+        }
+
+        .restore-section {
             margin-top: 20px;
-            padding: 10px;
+            background: var(--surface-card);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px dashed #444;
         }
 
         .disclaimer-text {
             font-size: 11px;
             color: #888;
             line-height: 1.4;
-            margin-top: 25px;
+            margin-top: 20px;
             border-top: 1px solid #333;
             padding-top: 15px;
             text-align: left;
@@ -213,8 +221,19 @@
                 Unlock Lifetime Access (£17.99)
             </a>
 
+            <!-- Restore Purchase / Order Code Box -->
+            <div class="restore-section">
+                <label for="order-code" style="font-size: 12px; margin-bottom: 5px; color: var(--text-muted);">Already Paid? Restore Access via Order / Receipt ID</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="order-code" placeholder="e.g., cs_test_... or receipt ref" style="font-size: 14px; padding: 8px;">
+                    <button type="button" id="restore-btn" style="background: #333; color: white; border: 1px solid #555; padding: 0 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">Restore</button>
+                </div>
+            </div>
+
             <!-- Developer testing bypass button for quick verification -->
-            <button type="button" class="dev-bypass" id="bypass-btn">[ Simulate Payment / Test App Access ]</button>
+            <div>
+                <button type="button" class="dev-bypass" id="bypass-btn">[ Simulate Payment / Test App Access ]</button>
+            </div>
 
             <div class="disclaimer-text">
                 <strong>Disclaimer:</strong> ToolShield is an independent digital asset registry tool designed to assist tradespeople in cataloging equipment for personal record-keeping, police reporting, and insurance claims. ToolShield does not guarantee insurance payouts or police recovery outcomes, which are subject to individual policy terms, insurer verification, and law enforcement investigations.
@@ -276,18 +295,32 @@
             const paywallScreen = document.getElementById('paywall-screen');
             const appContent = document.getElementById('app-content');
             const bypassBtn = document.getElementById('bypass-btn');
+            const restoreBtn = document.getElementById('restore-btn');
             const lockBtn = document.getElementById('lock-btn');
             const toolForm = document.getElementById('tool-form');
             const pdfBtn = document.getElementById('pdf-btn');
 
-            // Check unlock status on load
-            if(localStorage.getItem('toolshield_unlocked') === 'true') {
+            // Check unlock status on load (also support URL auto-unlock if returning from Stripe)
+            const urlParams = new URLSearchParams(window.location.search);
+            if(localStorage.getItem('toolshield_unlocked') === 'true' || urlParams.has('unlocked') || urlParams.has('success')) {
+                localStorage.setItem('toolshield_unlocked', 'true');
                 showAppDashboard();
             }
 
             bypassBtn.addEventListener('click', function() {
                 localStorage.setItem('toolshield_unlocked', 'true');
                 showAppDashboard();
+            });
+
+            restoreBtn.addEventListener('click', function() {
+                const code = document.getElementById('order-code').value.trim();
+                if(code.length > 3) {
+                    localStorage.setItem('toolshield_unlocked', 'true');
+                    alert('Purchase restored successfully!');
+                    showAppDashboard();
+                } else {
+                    alert('Please enter a valid order code or receipt reference.');
+                }
             });
 
             lockBtn.addEventListener('click', function() {
@@ -386,6 +419,7 @@
                 doc.setFont("helvetica", "normal");
                 let totalValue = 0;
 
+                tools.rows = tools.forEach ? tools : [];
                 tools.forEach((tool) => {
                     if (y > 250) {
                         doc.addPage();
