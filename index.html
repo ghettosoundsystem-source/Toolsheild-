@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToolShield - Secure Trade Asset Registry</title>
+    <title>ToolShield - Secure Trade Asset Registry & Insurance Dossier</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -26,7 +26,7 @@
         }
         header p {
             color: #aaa;
-            font-size: 0.9rem;
+            font-size: 14px;
         }
         .card {
             background: #1e1e1e;
@@ -36,39 +36,45 @@
             margin-bottom: 20px;
         }
         .card h2 {
-            font-size: 1.1rem;
-            margin-top: 0;
+            font-size: 18px;
             color: #ff9800;
+            margin-top: 0;
+            margin-bottom: 15px;
         }
         input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             background: #2a2a2a;
             border: 1px solid #444;
-            border-radius: 5px;
-            color: white;
+            color: #fff;
+            border-radius: 6px;
             box-sizing: border-box;
         }
-        button {
+        button.primary-btn {
             width: 100%;
-            padding: 12px;
             background: #ff9800;
             color: #121212;
             border: none;
-            border-radius: 5px;
+            padding: 12px;
             font-weight: bold;
-            font-size: 1rem;
+            border-radius: 6px;
             cursor: pointer;
         }
-        ul {
-            padding-left: 20px;
-            margin: 0;
-            color: #ccc;
+        .payment-card {
+            border: 1px solid #ff9800;
         }
-        li {
-            margin-bottom: 8px;
+        .payment-card a {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
         }
+        .btn-blue { background: #2196F3; color: #fff; }
+        .btn-green { background: #4CAF50; color: #fff; }
     </style>
 </head>
 <body>
@@ -78,105 +84,87 @@
             <p>Secure Trade Asset Registry & Insurance Dossier</p>
         </header>
 
-        <section class="card">
+        <div class="card">
             <h2>Log Your Kit</h2>
-            <div class="form-group">
-                <input type="text" id="toolName" placeholder="Tool Name / Brand (e.g. Makita Combi Drill)">
-                <input type="text" id="toolSerial" placeholder="Serial Number">
-                <button onclick="addTool()">Add to Vault</button>
-            </div>
-        </section>
+            <input type="text" id="toolname" placeholder="Tool Name / Make (e.g. Makita Combi Drill)">
+            <input type="text" id="toolserial" placeholder="Serial Number">
+            <button class="primary-btn" onclick="addTool()">Add to Vault</button>
+        </div>
 
-        <section class="card">
+        <div class="card">
             <h2>Protected Vault Inventory</h2>
-            <ul id="toolList">
-                <li>No tools logged yet. Add your kit above.</li>
-            </ul>
-        </section>
+            <div id="toollist">
+                <p style="color: #aaa;">No tools logged yet. Add your kit above.</p>
+            </div>
+        </div>
 
-        <section class="card payment-card">
+        <div class="card payment-card">
             <h2>Get Paid Protection</h2>
-            <p>Export an insurance-ready dossier or unlock unlimited cloud backups for the year.</p>
-            
-            <a href="https://buy.stripe.com/bJe4gz7YhcJ6fD17Sw8EM00" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; font-weight: bold; margin-bottom: 10px; background: #2196F3; color: white;">
-                📄 Get Insurance Dossier (£7.99)
-            </a>
-            
-            <a href="https://buy.stripe.com/14A6oH5Q9gZmeyX1u88EM01" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; font-weight: bold; background: #4CAF50; color: white;">
-                ⭐ Get Annual Vault Pass (£12.99/yr)
-            </a>
-        </section>
+            <p style="font-size: 13px; color: #ccc;">Export an insurance-ready dossier or unlock unlimited cloud backups for the year.</p>
+            <a href="https://buy.stripe.com/bJe..." class="btn-blue">📄 Get Insurance Dossier (£7.99)</a>
+            <a href="https://buy.stripe.com/14A..." class="btn-green">⭐ Get Annual Vault Pass (£12.99/yr)</a>
+        </div>
     </div>
 
     <script>
-// Load existing tools from localStorage or start with an empty array
-let toolList = JSON.parse(localStorage.getItem('toolshield_vault')) || [];
-
-// Render existing tools on page load
-renderTools();
-
-function addTool() {
-    const nameInput = document.getElementById('toolname').value.trim();
-    const serialInput = document.getElementById('toolserial').value.trim();
-
-    if (nameInput === "") {
-        alert("Please enter a tool name.");
-        return;
-    }
-
-    // Create new tool object
-    const newTool = {
-        id: Date.now(),
-        name: nameInput,
-        serial: serialInput || 'No Serial Provided'
-    };
-
-    // Add to list and save to browser storage
-    toolList.push(newTool);
-    localStorage.setItem('toolshield_vault', JSON.stringify(toolList));)
-
-    // Reset inputs and refresh display
-    document.getElementById('toolname').value = '';
-    document.getElementById('toolserial').value = '';
-    renderTools();
-}
-
-function clearVault() {
-    if (confirm("Are you sure you want to clear all logged tools from your vault?")) {
-        toolList = [];
-        localStorage.removeItem('toolshield_vault');
+        let toolList = JSON.parse(localStorage.getItem('toolshield_vault')) || [];
         renderTools();
-    }
-}
 
-function renderTools() {
-    const listContainer = document.getElementById('toollist');
-    if (!listContainer) return;
+        function addTool() {
+            const nameInput = document.getElementById('toolname').value.trim();
+            const serialInput = document.getElementById('toolserial').value.trim();
 
-    if (toolList.length === 0) {
-        listContainer.innerHTML = `
-            <p style="color: #aaa; padding: 10px 0;">No tools logged yet. Add your kit above.</p>
-        `;
-        return;
-    }
+            if (nameInput === "") {
+                alert("Please enter a tool name.");
+                return;
+            }
 
-    // Generate the list HTML plus the Clear Vault button at the bottom
-    let html = toolList.map(tool => `
-        <div style="background: #1e1e1e; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff8800; color: #fff;">
-            <strong>${tool.name}</strong><br>
-            <small style="color: #aaa;">Serial: ${tool.serial}</small>
-        </div>
-    `).join('');
+            const newTool = {
+                id: Date.now(),
+                name: nameInput,
+                serial: serialInput || 'No Serial Provided'
+            };
 
-    html += `
-        <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            Clear Vault Inventory
-        </button>
-    `;
+            toolList.push(newTool);
+            localStorage.setItem('toolshield_vault', JSON.stringify(toolList));
 
-    listContainer.innerHTML = html;
-}
+            document.getElementById('toolname').value = '';
+            document.getElementById('toolserial').value = '';
+            renderTools();
+        }
+
+        function clearVault() {
+            if (confirm("Are you sure you want to clear all logged tools from your vault?")) {
+                toolList = [];
+                localStorage.removeItem('toolshield_vault');
+                renderTools();
+            }
+        }
+
+        function renderTools() {
+            const listContainer = document.getElementById('toollist');
+            if (!listContainer) return;
+
+            if (toolList.length === 0) {
+                listContainer.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
+                return;
+            }
+
+            let html = toolList.map(tool => `
+                <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
+                    <strong>${tool.name}</strong><br>
+                    <small style="color: #aaa;">Serial: ${tool.serial}</small>
+                </div>
+            `).join('');
+
+            html += `
+                <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    Clear Vault Inventory
+                </button>
+            `;
+
+            listContainer.innerHTML = html;
+        }
     </script>
-    
 </body>
 </html>
