@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToolShield - Secure Trade Asset Registry & Insurance Dossier</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -106,67 +107,111 @@
         </div>
     </div>
 
-<script>
-const KEY = 'toolshield_vault';
-let toolList = JSON.parse(localStorage.getItem(KEY)) || [];
-renderTools();
-
-function addTool() {
-    const nameInput = document.getElementById('toolname').value.trim();
-    const serialInput = document.getElementById('toolserial').value.trim();
-
-    if (nameInput === "") {
-        alert("Please enter a tool name.");
-        return;
-    }
-
-    const newTool = {
-        id: Date.now(),
-        name: nameInput,
-        serial: serialInput || 'No Serial Provided'
-    };
-
-    toolList.push(newTool);
-    localStorage.setItem(KEY, JSON.stringify(toolList));
-
-    document.getElementById('toolname').value = '';
-    document.getElementById('toolserial').value = '';
-    renderTools();
-}
-
-function clearVault() {
-    if (confirm("Clear all logged tools?")) {
-        toolList = [];
-        localStorage.removeItem(KEY);
+    <script>
+        const KEY = 'toolshield_vault';
+        let toolList = JSON.parse(localStorage.getItem(KEY)) || [];
         renderTools();
-    }
-}
 
-function renderTools() {
-    const container = document.getElementById('toollist');
-    if (!container) return;
+        function addTool() {
+            const nameInput = document.getElementById('toolname').value.trim();
+            const serialInput = document.getElementById('toolserial').value.trim();
 
-    if (toolList.length === 0) {
-        container.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
-        return;
-    }
+            if (nameInput === "") {
+                alert("Please enter a tool name.");
+                return;
+            }
 
-    let html = toolList.map(t => `
-        <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
-            <strong>${t.name}</strong><br>
-            <small style="color: #aaa;">Serial: ${t.serial}</small>
-        </div>
-    `).join('');
+            const newTool = {
+                id: Date.now(),
+                name: nameInput,
+                serial: serialInput || 'No Serial Provided'
+            };
 
-    html += `
-        <button onclick="clearVault()" style="width: 100%; margin-top: 15px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            Clear Vault Inventory
-        </button>
-    `;
+            toolList.push(newTool);
+            localStorage.setItem(KEY, JSON.stringify(toolList));
 
-    container.innerHTML = html;
-}
-</script>
+            document.getElementById('toolname').value = '';
+            document.getElementById('toolserial').value = '';
+            renderTools();
+        }
 
+        function clearVault() {
+            if (confirm("Clear all logged tools?")) {
+                toolList = [];
+                localStorage.removeItem(KEY);
+                renderTools();
+            }
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFillColor(18, 18, 18);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 152, 0);
+            doc.setFontSize(22);
+            doc.text("ToolShield Insurance Dossier", 14, 20);
+            
+            doc.setTextColor(200, 200, 200);
+            doc.setFontSize(10);
+            doc.text("Secure Trade Asset Registry - Official Inventory Report", 14, 30);
+
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 50);
+
+            let y = 65;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+
+            toolList.forEach((tool, index) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFillColor(245, 245, 245);
+                doc.rect(14, y - 5, 182, 16, 'F');
+                
+                doc.setFont(undefined, 'bold');
+                doc.text(`${index + 1}. ${tool.name}`, 18, y + 3);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Serial: ${tool.serial}`, 110, y + 3);
+                
+                y += 20;
+            });
+
+            doc.save("ToolShield-Insurance-Dossier.pdf");
+        }
+
+        function renderTools() {
+            const container = document.getElementById('toollist');
+            if (!container) return;
+
+            if (toolList.length === 0) {
+                container.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
+                return;
+            }
+
+            let html = toolList.map(t => `
+                <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
+                    <strong>${t.name}</strong><br>
+                    <small style="color: #aaa;">Serial: ${t.serial}</small>
+                </div>
+            `).join('');
+
+            html += `
+                <button onclick="downloadPDF()" style="width: 100%; margin-top: 15px; background: #2196F3; color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    📄 Download Insurance PDF Report
+                </button>
+                <button onclick="clearVault()" style="width: 100%; margin-top: 10px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    Clear Vault Inventory
+                </button>
+            `;
+
+            container.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
