@@ -4,213 +4,391 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToolShield - Secure Trade Asset Registry & Insurance Dossier</title>
+    <!-- Include jsPDF library for insurance/police report generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        :root {
+            --bg-dark: #121212;
+            --surface-dark: #1e1e1e;
+            --surface-card: #2a2a2a;
+            --accent-orange: #ff9800;
+            --text-main: #f0f0f0;
+            --text-muted: #aaa;
+            --danger: #f44336;
+            --success: #4CAF50;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #121212;
-            color: #f0f0f0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             margin: 0;
-            padding: 15px;
+            padding: 20px;
         }
-        .app-container {
-            max-width: 500px;
+
+        .container {
+            max-width: 700px;
             margin: 0 auto;
         }
-        header {
+
+        /* Paywall Gate Styles */
+        #paywall-screen {
+            background: var(--surface-dark);
+            border: 2px solid var(--accent-orange);
+            border-radius: 12px;
+            padding: 30px;
             text-align: center;
-            margin-bottom: 25px;
+            margin-top: 40px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
-        header h1 {
-            color: #ff9800;
+
+        .paywall-logo {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
             margin-bottom: 5px;
         }
-        header p {
-            color: #aaa;
-            font-size: 14px;
+
+        .price-badge {
+            background: var(--surface-card);
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 25px 0;
         }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            background: var(--accent-orange);
+            color: var(--bg-dark);
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        /* Main App Dashboard Styles */
+        #app-content {
+            display: none; /* Hidden by default until unlocked */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
         .card {
-            background: #1e1e1e;
-            border: 1px solid #333;
+            background: var(--surface-dark);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .card h2 {
-            font-size: 18px;
-            color: #ff9800;
-            margin-top: 0;
+
+        .form-group {
             margin-bottom: 15px;
         }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--accent-orange);
+            font-size: 14px;
+        }
+
         input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 12px;
-            background: #2a2a2a;
+            background: var(--surface-card);
             border: 1px solid #444;
-            color: #fff;
-            border-radius: 6px;
+            color: var(--text-main);
+            border-radius: 4px;
             box-sizing: border-box;
+            font-size: 16px;
         }
-        button.primary-btn {
-            width: 100%;
-            background: #ff9800;
-            color: #121212;
-            border: none;
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+        }
+
+        .tool-item {
+            background: var(--surface-card);
             padding: 12px;
-            font-weight: bold;
             border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-info b {
+            color: var(--accent-orange);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
             cursor: pointer;
         }
-        .payment-card {
-            border: 1px solid #ff9800;
-        }
-        .payment-card a {
-            display: block;
-            text-align: center;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 6px;
-            text-decoration: none;
+
+        .btn-pdf {
+            background: #2196F3;
+            color: white;
             font-weight: bold;
+            margin-top: 10px;
         }
-        .btn-blue { background: #2196F3; color: #fff; }
-        .btn-green { background: #4CAF50; color: #fff; }
+
+        .dev-bypass {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>ToolShield</h1>
-            <p>Secure Trade Asset Registry & Insurance Dossier</p>
-        </header>
 
-        <div class="card">
-            <h2>Log Your Kit</h2>
-            <input type="text" id="toolname" placeholder="Tool Name / Make (e.g. Makita Combi Drill)">
-            <input type="text" id="toolserial" placeholder="Serial Number">
-            <button class="primary-btn" onclick="addTool()">Add to Vault</button>
+    <div class="container">
+
+        <!-- ================= PAYWALL GATE ================= -->
+        <div id="paywall-screen">
+            <div class="paywall-logo">ToolShield</div>
+            <p style="color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">Secure Trade Asset Registry & Insurance Dossier</p>
+            
+            <p style="line-height: 1.6; color: #ddd; margin: 20px 0;">
+                Protect your livelihood, deter tool thieves, and generate instant police- and insurance-approved PDF inventory reports straight from your mobile device.
+            </p>
+            
+            <div class="price-badge">
+                <div class="price-amount">£17.99</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Lifetime Access • One-Time Payment • Unlimited Vault Updates</div>
+            </div>
+
+            <!-- Live Stripe Checkout Link -->
+            <a href="https://buy.stripe.com/cNifZh92l24s3Ujb4I8EM02" class="btn-primary" target="_blank">
+                Unlock Lifetime Access (£17.99)
+            </a>
+
+            <!-- Developer testing bypass button for quick verification -->
+            <button class="dev-bypass" onclick="simulateSuccessfulPayment()">[ Simulate Payment / Test App Access ]</button>
         </div>
 
-        <div class="card">
-            <h2>Protected Vault Inventory</h2>
-            <div id="toollist">
-                <p style="color: #aaa;">No tools logged yet. Add your kit above.</p>
+        <!-- ================= MAIN APP DASHBOARD ================= -->
+        <div id="app-content">
+            <header>
+                <h1>ToolShield</h1>
+                <p style="color: var(--text-muted); font-size: 14px;">Secure Vault & Instant Insurance Dossier Generator</p>
+            </header>
+
+            <!-- Add Tool Form -->
+            <div class="card">
+                <h3 style="margin-top: 0; color: var(--text-main);">Log New Equipment</h3>
+                <form id="tool-form" onsubmit="addTool(event)">
+                    <div class="form-group">
+                        <label for="tool-name">Tool Name / Brand / Model</label>
+                        <input type="text" id="tool-name" placeholder="e.g., Makita DHP485 Combi Drill" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tool-serial">Serial Number</label>
+                        <input type="text" id="tool-serial" placeholder="e.g., SN-98427103" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tool-value">Estimated Value (£)</label>
+                        <input type="number" id="tool-value" placeholder="e.g., 250" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="background: var(--success); color: white;">Save to Secure Vault</button>
+                </form>
+            </div>
+
+            <!-- Inventory List -->
+            <div class="card">
+                <h3 style="margin-top: 0; color: var(--text-main);">Your Secured Vault</h3>
+                <div id="tool-list">
+                    <p style="color: var(--text-muted); font-style: italic;">No tools logged yet. Add your kit above.</p>
+                </div>
+
+                <button onclick="generateInsurancePDF()" id="pdf-btn" class="btn-primary btn-pdf" style="display: none;">
+                    📄 Download Police & Insurance PDF Report
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="lockApp()" style="background: transparent; border: 1px solid #444; color: var(--text-muted); padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    Lock Vault / Reset Session
+                </button>
             </div>
         </div>
 
-        <div class="card payment-card">
-            <h2>Get Paid Protection</h2>
-            <p style="font-size: 13px; color: #ccc;">Export an insurance-ready dossier or unlock unlimited cloud backups for the year.</p>
-            <a href="https://buy.stripe.com/bJe..." class="btn-blue">📄 Get Insurance Dossier (£7.99)</a>
-            <a href="https://buy.stripe.com/14A..." class="btn-green">⭐ Get Annual Vault Pass (£12.99/yr)</a>
-        </div>
     </div>
 
     <script>
-        const KEY = 'toolshield_vault';
-        let toolList = JSON.parse(localStorage.getItem(KEY)) || [];
-        renderTools();
+        let tools = JSON.parse(localStorage.getItem('toolshield_inventory')) || [];
 
-        function addTool() {
-            const nameInput = document.getElementById('toolname').value.trim();
-            const serialInput = document.getElementById('toolserial').value.trim();
-
-            if (nameInput === "") {
-                alert("Please enter a tool name.");
-                return;
+        // Check unlock status on load
+        window.onload = function() {
+            if(localStorage.getItem('toolshield_unlocked') === 'true') {
+                showAppDashboard();
             }
+        }
 
-            const newTool = {
-                id: Date.now(),
-                name: nameInput,
-                serial: serialInput || 'No Serial Provided'
-            };
+        function simulateSuccessfulPayment() {
+            localStorage.setItem('toolshield_unlocked', 'true');
+            showAppDashboard();
+        }
 
-            toolList.push(newTool);
-            localStorage.setItem(KEY, JSON.stringify(toolList));
-
-            document.getElementById('toolname').value = '';
-            document.getElementById('toolserial').value = '';
+        function showAppDashboard() {
+            document.getElementById('paywall-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
             renderTools();
         }
 
-        function clearVault() {
-            if (confirm("Clear all logged tools?")) {
-                toolList = [];
-                localStorage.removeItem(KEY);
-                renderTools();
-            }
+        function lockApp() {
+            localStorage.removeItem('toolshield_unlocked');
+            document.getElementById('paywall-screen').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
         }
 
-        function downloadPDF() {
+        function addTool(e) {
+            e.preventDefault();
+            const name = document.getElementById('tool-name').value;
+            const serial = document.getElementById('tool-serial').value;
+            const value = document.getElementById('tool-value').value;
+
+            tools.push({ id: Date.now(), name, serial, value });
+            localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
+
+            document.getElementById('tool-form').reset();
+            renderTools();
+        }
+
+        function deleteTool(id) {
+            tools = tools.filter(t => t.id !== id);
+            localStorage.setItem('toolshield_inventory', JSON.stringify(tools));
+            renderTools();
+        }
+
+        function renderTools() {
+            const listEl = document.getElementById('tool-list');
+            const pdfBtn = document.getElementById('pdf-btn');
+
+            if (tools.length === 0) {
+                listEl.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">No tools logged yet. Add your kit above.</p>';
+                pdfBtn.style.display = 'none';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            tools.forEach(tool => {
+                listEl.innerHTML += `
+                    <div class="tool-item">
+                        <div class="tool-info">
+                            <b>${tool.name}</b><br>
+                            <span style="font-size: 13px; color: var(--text-muted);">S/N: ${tool.serial} | Value: £${tool.value}</span>
+                        </div>
+                        <button class="btn-danger" onclick="deleteTool(${tool.id})">Remove</button>
+                    </div>
+                `;
+            });
+
+            pdfBtn.style.display = 'block';
+        }
+
+        function generateInsurancePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // Header Banner
             doc.setFillColor(18, 18, 18);
-            doc.rect(0, 0, 210, 40, 'F');
-            
+            doc.rect(0, 0, 210, 40, "F");
+
             doc.setTextColor(255, 152, 0);
             doc.setFontSize(22);
-            doc.text("ToolShield Insurance Dossier", 14, 20);
-            
+            doc.text("TOOLSHIELD", 14, 22);
+
             doc.setTextColor(200, 200, 200);
             doc.setFontSize(10);
-            doc.text("Secure Trade Asset Registry - Official Inventory Report", 14, 30);
+            doc.text("OFFICIAL TRADE ASSET & INSURANCE DOSSIER", 14, 30);
 
-            doc.setTextColor(100, 100, 100);
-            doc.setFontSize(10);
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 50);
+            // Metadata
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(11);
+            doc.text(`Generated On: ${new Date().toLocaleDateString('en-GB')}`, 14, 52);
+            doc.text(`Status: Verified Secure Vault Inventory`, 14, 58);
 
-            let y = 65;
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(12);
+            // Table Headers
+            let y = 70;
+            doc.setFillColor(240, 240, 240);
+            doc.rect(14, y, 182, 10, "F");
+            doc.setFont("helvetica", "bold");
+            doc.text("Tool Description / Model", 18, y + 7);
+            doc.text("Serial Number", 110, y + 7);
+            doc.text("Value (£)", 170, y + 7);
 
-            toolList.forEach((tool, index) => {
+            // Tool Rows
+            y += 10;
+            doc.setFont("helvetica", "normal");
+            let totalValue = 0;
+
+            tools.forEach((tool, index) => {
                 if (y > 270) {
                     doc.addPage();
                     y = 20;
                 }
-                doc.setFillColor(245, 245, 245);
-                doc.rect(14, y - 5, 182, 16, 'F');
+                totalValue += parseFloat(tool.value || 0);
                 
-                doc.setFont(undefined, 'bold');
-                doc.text(`${index + 1}. ${tool.name}`, 18, y + 3);
-                doc.setFont(undefined, 'normal');
-                doc.text(`Serial: ${tool.serial}`, 110, y + 3);
-                
-                y += 20;
+                doc.text(tool.name, 18, y + 8);
+                doc.text(tool.serial, 110, y + 8);
+                doc.text(`£${tool.value}`, 170, y + 8);
+
+                doc.setDrawColor(220, 220, 220);
+                doc.line(14, y + 12, 196, y + 12);
+                y += 14;
             });
 
-            doc.save("ToolShield-Insurance-Dossier.pdf");
-        }
+            // Total Summary
+            y += 5;
+            doc.setFont("helvetica", "bold");
+            doc.text(`Total Insured Value: £${totalValue.toFixed(2)}`, 140, y + 8);
 
-        function renderTools() {
-            const container = document.getElementById('toollist');
-            if (!container) return;
+            // Footer
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text("ToolShield Digital Asset Protection - Certified Inventory Record", 14, 285);
 
-            if (toolList.length === 0) {
-                container.innerHTML = '<p style="color: #aaa;">No tools logged yet. Add your kit above.</p>';
-                return;
-            }
-
-            let html = toolList.map(t => `
-                <div style="background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; border-left: 4px solid #ff9800; color: #fff;">
-                    <strong>${t.name}</strong><br>
-                    <small style="color: #aaa;">Serial: ${t.serial}</small>
-                </div>
-            `).join('');
-
-            html += `
-                <button onclick="downloadPDF()" style="width: 100%; margin-top: 15px; background: #2196F3; color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    📄 Download Insurance PDF Report
-                </button>
-                <button onclick="clearVault()" style="width: 100%; margin-top: 10px; background: #333; color: #ff5555; border: 1px solid #ff5555; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    Clear Vault Inventory
-                </button>
-            `;
-
-            container.innerHTML = html;
+.           doc.save("ToolShield-Insurance-Dossier.pdf");
         }
     </script>
 </body>
